@@ -12,19 +12,12 @@ Original file is located at
 # %pip install "unstructured[all-docs]" unstructured-client watermark langchain-groq langchain fastembed qdrant_client python-dotenv
 
 import os
-import textwrap
 
-import langchain
 from langchain.chains import RetrievalQA
-from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import TextLoader, UnstructuredPDFLoader, YoutubeLoader, PyPDFLoader
-from langchain.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings
+from langchain_community.document_loaders import TextLoader, UnstructuredPDFLoader, YoutubeLoader, PyPDFLoader
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.indexes import VectorstoreIndexCreator
-from langchain.llms import OpenAI
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
-from langchain.llms import GPT4All
-from langchain import LLMChain, PromptTemplate
+from langchain import  PromptTemplate
 from langchain_groq import ChatGroq
 
 from groq import Groq
@@ -35,35 +28,6 @@ os.environ['GROQ_API_KEY'] = 'gsk_9pR3h15ht7v0suM5dpFpWGdyb3FYTw85xXjU5O0qzYeepK
 # Initialize the client using the environment variable
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-chat_completion = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": """
-<|im_start|>system
-You are a Japanese history chatbot. You will receive a multi-choices question about Japanese history and you must present the right answer as well
-as some explainations if possible
-
-<|im_start|>user
-### Question:
-Who is the de-facto leader of the Western Army in 1600 :
-### Choices:
-A. Akechi Mitsuhide
-B. Mori Terumoto
-C. Tokugawa Ieyasu
-D. Ishida Mitsunari
-### Answer:
-
-<|im_start|>assistant
-""".strip(),
-        }
-    ],
-    model="gemma-7b-it",
-)
-
-print(chat_completion.choices[0].message.content)
-
-from langchain.document_loaders import PyPDFLoader
 loader = PyPDFLoader("data.pdf")
 pages = loader.load()
 
@@ -77,13 +41,13 @@ text_splitter = CharacterTextSplitter(
 )
 
 docs = text_splitter.split_documents(pages)
-len(docs)
+
 # Sử dụng mô hình embedding
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 hf_embeddings = HuggingFaceEmbeddings(model_name=MODEL_NAME)
 
 # Chuyển toàn bộ text thông qua mô hình embedding về dạng vector và lưu dưới dạng db
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 
 db = FAISS.from_documents(docs, hf_embeddings)
 
@@ -101,9 +65,7 @@ prompt = PromptTemplate(template=custom_prompt_template,
 
 from langchain.prompts.prompt import PromptTemplate
 from langchain_groq import ChatGroq
-from langchain.memory import ChatMessageHistory
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
+
 
 retriever = db.as_retriever()
 
@@ -119,10 +81,14 @@ chain = RetrievalQA.from_chain_type(
     chain_type_kwargs={'prompt': prompt}
 )
 
-response = chain.run("""Who is the de-facto leader of the Western Army in 1600 :
-### Choices:
-A. Akechi Mitsuhide
-B. Mori Terumoto
-C. Tokugawa Ieyasu
-D. Ishida Mitsunari""")
-print(response)
+# response = chain.run("""Who is the de-facto leader of the Western Army in 1600 :
+# ### Choices:
+# A. Akechi Mitsuhide
+# B. Mori Terumoto
+# C. Tokugawa Ieyasu
+# D. Ishida Mitsunari""")
+# print(response)
+
+def generate_response(question):
+    response = chain({'query': question})
+    return response['result']
