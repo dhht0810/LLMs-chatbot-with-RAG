@@ -10,8 +10,8 @@ Thiết lập 1 chatbot trả lời các câu hỏi lịch sử Nhật Bản s�
 
 ## Công nghệ chính được sử dụng:
 1. Mô hình: Sử dụng dịch vụ API miễn phí của Groq, mô hình sử dụng là gemma-7b-it
-2. Xây dựng RAG: Langchain
-3. UI: Streamlit
+2. Xây dựng RAG: Langchain 
+3. UI và deploy: Streamlit
 
 ## Quy trình xây dựng hệ thống LLMs:
 - Bước 1: Thiết lập kết nối với dịch vụ của Groq
@@ -21,4 +21,5 @@ Thiết lập 1 chatbot trả lời các câu hỏi lịch sử Nhật Bản s�
 - Bước 5: Tạo chain với prompt template, vector database và model sử dụng ở trên
 - Bước 6: Xây dựng UI
 
-
+## Link deploy
+[https://japanese-history-chatbot.streamlit.app/]
